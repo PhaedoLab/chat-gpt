@@ -3,54 +3,98 @@
   <div class="wrapper">
     <div class="msg-wrapper">
       <ul class="msg-list">
-        <div class="msg-item" :class="{'user-bg':item.type === 'user'}" v-for="item in list" :key="item.id">
-          <template v-if="item.type === 'bot'">
-            <div class="msg-title">
-              <img class="bot" src="./assets/img/bot.svg" alt="">
-              <span class="chat-txt1">Chatwallet</span>
-              <span class="chat-txt2">OpenAI</span>
-            </div>
-            <div class="msg-content">{{item.content}}</div>
-          </template>
-          <template v-else>
-            <div class="msg-title">
-              <img class="bot" src="./assets/img/user.svg" alt="">
-              <span class="chat-txt3">Kuper</span>
-            </div>
-            <div class="user-content">{{item.content}}</div>
-          </template>          
-        </div>
+        <template v-for="(list, index) in arr" :key="index">
+          <div class="msg-item" :class="{'user-bg':item.type === 'user'}" v-for="(item, idx) in list" :key="idx">
+            <template v-if="item.type === 'bot'">
+              <div class="msg-title">
+                <img class="bot" src="./assets/img/bot.svg" alt="">
+                <span class="chat-txt1">Chatwallet</span>
+                <span class="chat-txt2">OpenAI</span>
+              </div>
+              <div class="msg-content" v-html="item.content"></div>
+            </template>
+            <template v-else>
+              <div class="msg-title">
+                <img class="bot" src="./assets/img/user.svg" alt="">
+                <span class="chat-txt3">Kuper</span>
+              </div>
+              <div class="user-content">{{item.content}}</div>
+            </template>
+          </div>
+      </template>
       </ul>
     </div>
     <div class="send-wrapper">
       <div class="send-inner">
-        <input class="msg-input" type="text" placeholder="Send message...">
+        <input class="msg-input" type="text" v-model="msg" placeholder="Send message..." @keyup.enter="handleSent">
         <img class="call-icon" src="./assets/img/call.svg" alt="">
       </div>
     </div>
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import { localStorage } from "./assets/utils/index";
 import { apiReq } from './assets/utils/openai'
+const msg = ref('')
+const onOff = ref(false)
 
-const list = ref([{
-  type:'bot',
-  loading:false,
-  content:'Hello, my friend. Welcome to the Web3 world. I am the Chatwallet bot. You can ask me anything about web3. And I will be your sincere companion during this exploration. '
-},
-{
-  type:'user',
-  loading:false,
-  content:'What is a web3 wallet used for?'
-},
-{
-  type:'bot',
-  loading:true,
-  content:''
-},
+const handleSent = e=>{
+  const val = e.target.value;
+  msg.value = '';
+  if(!onOff.value){
+    arr.push([{
+      type:'user',
+      loading:false,
+      content:val,
+      response:val
+    }])
+    onOff.value = true
+  }else{
+    arr[arr.length-1].push({
+      type:'user',
+      loading:false,
+      content:val,
+      response:val
+    })
+  }
+
+
+
+  const cs = arr[arr.length-1]
+  const str = cs.reduce((prev, cur)=> prev + cur.response,'')
+  console.log(str)
+  apiReq(str).then(res=>{
+    console.log(res)
+    if(res.status === 200){
+      const resTxt = res.data.choices[0].text
+      arr[arr.length-1].push({
+        type:'bot',
+        loading:false,
+        content:
+          resTxt
+          .replace('？','')
+          .replace('。','')
+          .replace('.','')
+          .replaceAll('\n', '<br/>')
+          .replace('<br/><br/>', '\n\n'),
+        response:resTxt
+      })
+    }
+  })
+
+}
+const arr = reactive([
+  [{
+    type:'bot',
+    loading:false,
+    content:'Hello, my friend. Welcome to the Web3 world. I am the Chatwallet bot. You can ask me anything about web3. And I will be your sincere companion during this exploration.',
+    response:''
+  }],
+  
 ])
+
+
 
 
 </script>
@@ -63,6 +107,7 @@ const list = ref([{
 }
 .msg-list{
   padding: 16px;
+  padding-bottom: 150px;
   .msg-item{
     margin-bottom: 16px;
     padding: 16px;
@@ -75,6 +120,9 @@ const list = ref([{
     line-height: 21px;
     &.user-bg{
       background: linear-gradient(0deg, rgba(33, 150, 83, 0.32), rgba(33, 150, 83, 0.32)), rgba(255, 255, 255, 0.2);
+    }
+    .msg-content{
+      word-break: break-all;
     }
     .msg-title{
       display: flex;
