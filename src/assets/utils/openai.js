@@ -5,7 +5,7 @@ import { Configuration, OpenAIApi } from 'openai'
 // let b = '-mu95BgsT5'
 // let c = 'zFyoycYsg9HT3BlbkFJt8odzWYNabXLeBLnTE9Z'
 const configuration = new Configuration({
-  // apiKey: atob('c2stbXU5NUJnc1Q1ekZ5b3ljWXNnOUhUM0JsYmtGSnQ4b2R6V1lOYWJYTGVCTG5URTla')
+  apiKey: atob('c2stbXU5NUJnc1Q1ekZ5b3ljWXNnOUhUM0JsYmtGSnQ4b2R6V1lOYWJYTGVCTG5URTla')
   
 });
 const openai = new OpenAIApi(configuration);
