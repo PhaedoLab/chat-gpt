@@ -136,10 +136,8 @@ const ques = e =>{
           .replaceAll('\n', '<br/>')
           .replace('<br/><br/>', '\n\n')
       lastDom[lastDom.length -1].response = resTxt
-      
     }
   })
-  
 
 }
 const initQues = ref([])
@@ -164,6 +162,17 @@ getQues()
 </script>
 
 <style scoped lang="scss">
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
 .wrapper{
   position: relative;
   min-height: 100vh;
