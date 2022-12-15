@@ -11,7 +11,13 @@
                 <span class="chat-txt1">Chatwallet</span>
                 <span class="chat-txt2">OpenAI</span>
               </div>
-              <div class="msg-content" v-html="item.content"></div>
+              
+              <div v-if="!item.loading" class="msg-content" v-html="item.content"></div>
+              <div v-else class="snippet">
+                <div class="stage">
+                  <div class="dot-flashing"></div>
+                </div>
+              </div>
             </template>
             <template v-else>
               <div class="msg-title">
@@ -24,10 +30,11 @@
       </template>
       </ul>
     </div>
+    <Diag v-if="showDiag" @close="showDiag = false"/>
     <div class="send-wrapper">
       <div class="send-inner">
         <input class="msg-input" type="text" v-model="msg" placeholder="Send message..." @keyup.enter="handleSent">
-        <img class="call-icon" src="./assets/img/call.svg" alt="">
+        <img class="call-icon" src="./assets/img/call.svg" alt="" @click="showDiag = true">
       </div>
     </div>
   </div>
@@ -36,7 +43,9 @@
 import { ref, onMounted, reactive } from 'vue';
 import { localStorage } from "./assets/utils/index";
 import { apiReq } from './assets/utils/openai'
+import Diag from './components/Diag.vue'
 const msg = ref('')
+const showDiag = ref(false)
 const onOff = ref(false)
 
 const handleSent = e=>{
@@ -60,26 +69,41 @@ const handleSent = e=>{
   }
 
 
-
   const cs = arr[arr.length-1]
   const str = cs.reduce((prev, cur)=> prev + cur.response,'')
-  console.log(str)
-  apiReq(str).then(res=>{
-    console.log(res)
+
+  arr[arr.length-1].push({
+      type:'bot',
+      loading:true,
+      content:'',
+      response:''
+    })
+
+  apiReq(str).then(res=>{    
     if(res.status === 200){
       const resTxt = res.data.choices[0].text
-      arr[arr.length-1].push({
-        type:'bot',
-        loading:false,
-        content:
-          resTxt
+      let lastDom = arr[arr.length-1]
+      lastDom[lastDom.length -1].loading = false
+      lastDom[lastDom.length -1].content = resTxt      
           .replace('？','')
           .replace('。','')
           .replace('.','')
           .replaceAll('\n', '<br/>')
-          .replace('<br/><br/>', '\n\n'),
-        response:resTxt
-      })
+          .replace('<br/><br/>', '\n\n')
+      lastDom[lastDom.length -1].response = resTxt
+
+      // arr[arr.length-1].push({
+      //   type:'bot',
+      //   loading:false,
+      //   content:
+      //     resTxt
+      //     .replace('？','')
+      //     .replace('。','')
+      //     .replace('.','')
+      //     .replaceAll('\n', '<br/>')
+      //     .replace('<br/><br/>', '\n\n'),
+      //   response:resTxt
+      // })
     }
   })
 
@@ -90,11 +114,26 @@ const arr = reactive([
     loading:false,
     content:'Hello, my friend. Welcome to the Web3 world. I am the Chatwallet bot. You can ask me anything about web3. And I will be your sincere companion during this exploration.',
     response:''
-  }],
-  
+  }],  
 ])
 
+const initQues = ref([])
 
+
+const getQues = ()=>{
+  window.fetch('http://54.183.182.125:3000/v1/qas')
+  .then((response) => response.json())
+  .then((data) => {
+    initQues.value = data.data
+    // {
+    //   ans: "Web3 is being touted as the future of the internet.The vision for this new, blockchain-based web includes cryptocurrencies,NFTs, DAOs, decentralized finance, and more.It offers a read/write/own version of the web, in which users have a financial stake in and more control over the web communities they belong to. "
+    //   ques: "what is web3 ?"
+    // }
+  });
+  
+}
+
+getQues()
 
 
 </script>
@@ -141,9 +180,6 @@ const arr = reactive([
         padding-left: 4px;
       }
     }
-    /* .user-content{
-      background: linear-gradient(0deg, rgba(33, 150, 83, 0.32), rgba(33, 150, 83, 0.32)), rgba(255, 255, 255, 0.2);
-    } */
   }
 }
 .send-wrapper{
@@ -174,6 +210,62 @@ const arr = reactive([
     }
   }
 }
+
+.snippet{
+  padding-top: 18px;
+  padding-bottom: 7px;
+}
+.stage{
+  display: flex;
+  justify-content: center;
+}
+    
+
+.dot-flashing {
+    position: relative;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.2);
+    animation: dot-flashing 1s infinite linear alternate;
+    animation-delay: 0.5s;
+   }
+   .dot-flashing::before, .dot-flashing::after {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    top: 0;
+   }
+   .dot-flashing::before {
+    left: -10px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.2);
+    animation: dot-flashing 1s infinite alternate;
+    animation-delay: 0s;
+   }
+   .dot-flashing::after {
+    left: 10px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.2);
+    animation: dot-flashing 1s infinite alternate;
+    animation-delay: 1s;
+   }
+   
+   @keyframes dot-flashing {
+    0% {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    50%, 100% {
+      background-color: #fff;
+    }
+   }
 </style>
 
 
