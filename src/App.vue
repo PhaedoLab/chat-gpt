@@ -11,7 +11,6 @@
                 <span class="chat-txt1">Chatwallet</span>
                 <span class="chat-txt2">OpenAI</span>
               </div>
-              
               <div v-if="!item.loading" class="msg-content" v-html="item.content"></div>
               <div v-else class="snippet">
                 <div class="stage">
@@ -30,7 +29,7 @@
       </template>
       </ul>
     </div>
-    <Diag v-if="showDiag" @close="showDiag = false"/>
+    <Diag v-if="showDiag" @close="showDiag = false" @ques="ques"/>
     <div class="send-wrapper">
       <div class="send-inner">
         <input class="msg-input" type="text" v-model="msg" placeholder="Send message..." @keyup.enter="handleSent">
@@ -51,6 +50,7 @@ const onOff = ref(false)
 const handleSent = e=>{
   const val = e.target.value;
   msg.value = '';
+
   if(!onOff.value){
     arr.push([{
       type:'user',
@@ -67,6 +67,51 @@ const handleSent = e=>{
       response:val
     })
   }
+
+  const cs = arr[arr.length-1]
+  const str = cs.reduce((prev, cur)=> prev + cur.response,'')
+
+  arr[arr.length-1].push({
+      type:'bot',
+      loading:true,
+      content:'',
+      response:''
+    })
+
+  apiReq(str).then(res=>{    
+    if(res.status === 200){
+      const resTxt = res.data.choices[0].text
+      let lastDom = arr[arr.length-1]
+      lastDom[lastDom.length -1].loading = false
+      lastDom[lastDom.length -1].content = resTxt      
+          .replace('？','')
+          .replace('。','')
+          .replace('.','')
+          .replaceAll('\n', '<br/>')
+          .replace('<br/><br/>', '\n\n')
+      lastDom[lastDom.length -1].response = resTxt
+      
+    }
+  })
+
+}
+const arr = reactive([
+  [{
+    type:'bot',
+    loading:false,
+    content:'Hello, my friend. Welcome to the Web3 world. I am the Chatwallet bot. You can ask me anything about web3. And I will be your sincere companion during this exploration.',
+    response:''
+  }],  
+])
+
+const ques = e =>{
+  showDiag.value = false
+  arr.push([{
+    type:'user',
+    loading:false,
+    content:e,
+    response:e
+  }])
 
 
   const cs = arr[arr.length-1]
@@ -91,32 +136,12 @@ const handleSent = e=>{
           .replaceAll('\n', '<br/>')
           .replace('<br/><br/>', '\n\n')
       lastDom[lastDom.length -1].response = resTxt
-
-      // arr[arr.length-1].push({
-      //   type:'bot',
-      //   loading:false,
-      //   content:
-      //     resTxt
-      //     .replace('？','')
-      //     .replace('。','')
-      //     .replace('.','')
-      //     .replaceAll('\n', '<br/>')
-      //     .replace('<br/><br/>', '\n\n'),
-      //   response:resTxt
-      // })
+      
     }
   })
+  
 
 }
-const arr = reactive([
-  [{
-    type:'bot',
-    loading:false,
-    content:'Hello, my friend. Welcome to the Web3 world. I am the Chatwallet bot. You can ask me anything about web3. And I will be your sincere companion during this exploration.',
-    response:''
-  }],  
-])
-
 const initQues = ref([])
 
 
