@@ -101,7 +101,7 @@ const handleSent = e=>{
 
   localStorage.set("chats", arr)
 
-  apiReq(str).then(res=>{    
+  apiReq(str).then(res=>{
     if(res.status === 200){
       const resTxt = res.data.choices[0].text
       let lastDom = arr[arr.length-1]
