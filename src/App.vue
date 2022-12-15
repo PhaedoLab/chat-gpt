@@ -1,9 +1,14 @@
 
 <template>
-  <div class="wrapper">
+  <div class="page-wrapper">
     <div class="msg-wrapper">
+      
       <ul class="msg-list">
         <template v-for="(list, index) in arr" :key="index">
+          <div class="time-div" v-if="index">
+            {{formatTime(list[0].stamp)}}
+            
+          </div>
           <div class="msg-item" :class="{'user-bg':item.type === 'user'}" v-for="(item, idx) in list" :key="idx">
             <template v-if="item.type === 'bot'">
               <div class="msg-title">
@@ -25,28 +30,41 @@
               </div>
               <div class="user-content">{{item.content}}</div>
             </template>
-          </div>
+          </div>          
       </template>
       </ul>
     </div>
-    <Diag v-if="showDiag" @close="showDiag = false" @ques="ques"/>
+
     <div class="send-wrapper">
       <div class="send-inner">
         <input class="msg-input" type="text" v-model="msg" placeholder="Send message..." @keyup.enter="handleSent">
         <img class="call-icon" src="./assets/img/call.svg" alt="" @click="showDiag = true">
       </div>
     </div>
+
+    <Diag v-if="showDiag" @close="showDiag = false" @ques="ques" :ques="ques_examples"/>
   </div>
 </template>
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
-import { localStorage } from "./assets/utils/index";
+import { localStorage, formatTimer } from "./assets/utils/index";
 import { apiReq } from './assets/utils/openai'
 import Diag from './components/Diag.vue'
 const msg = ref('')
 const showDiag = ref(false)
 const onOff = ref(false)
+let chats = localStorage.get("chats") || [
+  [{
+    type:'bot',
+    loading:false,
+    content:'Hello, my friend. Welcome to the Web3 world. I am the Chatwallet bot. You can ask me anything about web3. And I will be your sincere companion during this exploration.',
+    response:''
+  }],  
+];
 
+const arr = reactive(chats)
+
+// input fields
 const handleSent = e=>{
   const val = e.target.value;
   msg.value = '';
@@ -56,7 +74,8 @@ const handleSent = e=>{
       type:'user',
       loading:false,
       content:val,
-      response:val
+      response:val,
+      stamp:new Date().getTime()
     }])
     onOff.value = true
   }else{
@@ -70,13 +89,17 @@ const handleSent = e=>{
 
   const cs = arr[arr.length-1]
   const str = cs.reduce((prev, cur)=> prev + cur.response,'')
-
-  arr[arr.length-1].push({
+  setTimeout(()=>{
+    arr[arr.length-1].push({
       type:'bot',
       loading:true,
       content:'',
       response:''
     })
+  }, 500)
+  
+
+  localStorage.set("chats", arr)
 
   apiReq(str).then(res=>{    
     if(res.status === 200){
@@ -90,41 +113,38 @@ const handleSent = e=>{
           .replaceAll('\n', '<br/>')
           .replace('<br/><br/>', '\n\n')
       lastDom[lastDom.length -1].response = resTxt
-      
+      localStorage.set("chats", arr)
+
     }
   })
-
 }
-const arr = reactive([
-  [{
-    type:'bot',
-    loading:false,
-    content:'Hello, my friend. Welcome to the Web3 world. I am the Chatwallet bot. You can ask me anything about web3. And I will be your sincere companion during this exploration.',
-    response:''
-  }],  
-])
 
+
+// click questions list
 const ques = e =>{
   showDiag.value = false
   arr.push([{
     type:'user',
     loading:false,
     content:e,
-    response:e
+    response:e,
+    stamp:new Date().getTime()
   }])
 
 
   const cs = arr[arr.length-1]
-  const str = cs.reduce((prev, cur)=> prev + cur.response,'')
+  const str = cs.reduce((prev, cur) => prev + cur.response, '')
 
-  arr[arr.length-1].push({
+  setTimeout(()=>{
+     arr[arr.length-1].push({
       type:'bot',
       loading:true,
       content:'',
       response:''
     })
+  }, 500)
 
-  apiReq(str).then(res=>{    
+  apiReq(str).then(res=>{
     if(res.status === 200){
       const resTxt = res.data.choices[0].text
       let lastDom = arr[arr.length-1]
@@ -138,31 +158,42 @@ const ques = e =>{
       lastDom[lastDom.length -1].response = resTxt
     }
   })
-
 }
+
+const formatTime = t =>{
+  const isToday = new Date().toDateString() === new Date(t).toDateString()
+  if(isToday){
+    return formatTimer(new Date(t), 'hh:mm')
+  }else{
+    return formatTimer(new Date(t), 'yyyy-MM-dd')
+  }
+}
+
 const initQues = ref([])
+const ques_examples = ref([])
 
 
+// get all question database
 const getQues = ()=>{
   window.fetch('http://54.183.182.125:3000/v1/qas')
   .then((response) => response.json())
   .then((data) => {
     initQues.value = data.data
-    // {
-    //   ans: "Web3 is being touted as the future of the internet.The vision for this new, blockchain-based web includes cryptocurrencies,NFTs, DAOs, decentralized finance, and more.It offers a read/write/own version of the web, in which users have a financial stake in and more control over the web communities they belong to. "
-    //   ques: "what is web3 ?"
-    // }
+    console.log(initQues.value)
+    ques_examples.value = initQues.value.reduce((prev, cur)=> [...prev, cur.ques], [])
   });
-  
 }
 
 getQues()
 
-
 </script>
 
 <style scoped lang="scss">
-
+.time-div{
+  display: flex;
+  justify-content: center;
+  padding-bottom: 14px;
+}
 .list-enter-active,
 .list-leave-active {
   transition: all 0.5s ease;
@@ -173,7 +204,7 @@ getQues()
   transform: translateX(30px);
 }
 
-.wrapper{
+.page-wrapper{
   position: relative;
   min-height: 100vh;
   background: radial-gradient(94.87% 50% at 50% 50%, rgba(9, 106, 105, 0.5) 0%, #096A69 86.87%), #B1FFF1;

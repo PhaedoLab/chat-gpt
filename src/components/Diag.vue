@@ -13,7 +13,7 @@
             <span>Basic knowledge about web3</span>
         </div>
         <div class="msg-list">
-            <div class="msg-item" v-for="item in items" :key="item.id" @click="handleClick(item)">
+            <div class="msg-item" v-for="item in ques" :key="item.id" @click="handleClick(item)">
                 {{ item }}
             </div>
         </div>
@@ -23,27 +23,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+
 const emit = defineEmits(["close",'ques']);
+defineProps(['ques'])
 
+const noop =  () => { }
 
-const noop =  () => {
-
-}
-const items = ref([
-    'What is Crypto?',
-    'What is a web3 wallet?',
-    'What is a web3 wallet?',
-    'What is a web3 wallet?',
-    'What is a web3 wallet?',
-    'What is a web3 wallet?',
-    'What is a web3 wallet?',
-])
 const modalClick =  () => {
     emit("close");    
 }
 const handleClick = (item)=>{
-    // console.log(item)
     emit("ques", item);
 }
 </script>
@@ -53,9 +42,9 @@ const handleClick = (item)=>{
 .wrapper{
   position: fixed;
   z-index: 100;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, .6);
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, .05);
   left: 0; 
   bottom:0;
 }
