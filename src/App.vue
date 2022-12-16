@@ -1,7 +1,7 @@
 
 <template>
   <div class="page-wrapper">
-    <div class="msg-wrapper">
+    <div class="msg-wrapper" ref="scroll">
       
       <ul class="msg-list">
         <template v-for="(list, index) in arr" :key="index">
@@ -49,14 +49,19 @@ import { ref, onMounted, reactive } from 'vue';
 import { localStorage, formatTimer } from "./assets/utils/index";
 import { apiReq } from './assets/utils/openai'
 import BScroll from '@better-scroll/core'
-
-
 import Diag from './components/Diag.vue'
+
 const msg = ref('')
 const inputRef = ref(null)
+const scroll = ref(null)
 
-
-
+ setTimeout(() => {
+   const bs = new BScroll(scroll.value, {
+    probeType: 3,
+    click: true
+  })
+ }, 500);
+ 
 
 const showDiag = ref(false)
 const onOff = ref(false)
@@ -72,7 +77,7 @@ let chats = localStorage.get("chats") || [
 
 const toBot = ()=>{
   setTimeout(() => {    
-    window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
+    // window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
   }, 100);
 }
 const arr = reactive(chats)
@@ -201,7 +206,7 @@ const ques = e =>{
       localStorage.set("chats", arr)
 
       toBot()
-      
+
     }
   })
 
@@ -240,6 +245,7 @@ getQues()
   display: flex;
   justify-content: center;
   padding-bottom: 14px;
+  color: rgba(255, 255, 255, 0.5);
 }
 .list-enter-active,
 .list-leave-active {
@@ -256,9 +262,16 @@ getQues()
   min-height: 100vh;
   background: radial-gradient(94.87% 50% at 50% 50%, rgba(9, 106, 105, 0.5) 0%, #096A69 86.87%), #B1FFF1;
 }
+.msg-wrapper{
+  /* height: calc(~"100vh - 150px"); */
+  height: calc(100vh - 70px);
+  position :relative;
+  overflow :hidden;
+}
 .msg-list{
   padding: 16px;
   padding-bottom: 150px;
+  box-sizing: border-box;
   .msg-item{
     margin-bottom: 16px;
     padding: 16px;
