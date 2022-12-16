@@ -56,10 +56,10 @@ const inputRef = ref(null)
 const scroll = ref(null)
 let bs;
  setTimeout(() => {
-   bs = new BScroll(scroll.value, {
-    probeType: 3,
-    click: true
-  })
+  //  bs = new BScroll(scroll.value, {
+  //   probeType: 3,
+  //   click: true
+  // })
  }, 500);
  
 
@@ -76,9 +76,9 @@ let chats = localStorage.get("chats") || [
 
 
 const toBot = ()=>{
-  // setTimeout(() => {    
-    
-  // }, 100);
+  setTimeout(() => {    
+    scroll.value.scrollTo({ left: 0, top: scroll.value.scrollHeight, behavior: "smooth" });
+  }, 100);
 }
 const arr = reactive(chats)
 
@@ -265,7 +265,7 @@ getQues()
 .msg-wrapper{  
   height: calc(100vh - 70px);
   position :relative;
-  overflow :hidden;
+  overflow :auto;
 }
 .msg-list{
   padding: 16px;  
