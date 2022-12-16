@@ -76,10 +76,9 @@ let chats = localStorage.get("chats") || [
 
 
 const toBot = ()=>{
-  setTimeout(() => {    
-    // window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
-    // bs.scrollTo(5000, 0, 300, undefined)
-  }, 100);
+  // setTimeout(() => {    
+    
+  // }, 100);
 }
 const arr = reactive(chats)
 
@@ -263,15 +262,13 @@ getQues()
   min-height: 100vh;
   background: radial-gradient(94.87% 50% at 50% 50%, rgba(9, 106, 105, 0.5) 0%, #096A69 86.87%), #B1FFF1;
 }
-.msg-wrapper{
-  /* height: calc(~"100vh - 150px"); */
+.msg-wrapper{  
   height: calc(100vh - 70px);
   position :relative;
   overflow :hidden;
 }
 .msg-list{
-  padding: 16px;
-  padding-bottom: 150px;
+  padding: 16px;  
   box-sizing: border-box;
   .msg-item{
     margin-bottom: 16px;
