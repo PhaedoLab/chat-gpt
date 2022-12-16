@@ -264,6 +264,7 @@ getQues()
 }
 .msg-wrapper{  
   height: calc(100vh - 70px);
+  padding-bottom: 60px;
   position :relative;
   overflow :auto;
 }
