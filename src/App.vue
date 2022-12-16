@@ -227,7 +227,7 @@ const ques_examples = ref([])
 
 // get all question database
 const getQues = ()=>{
-  window.fetch('http://54.183.182.125:3000/v1/qas')
+  window.fetch('https://chatbot.ingroup.chat/v1/qas')
   .then((response) => response.json())
   .then((data) => {
     initQues.value = data.data
