@@ -144,6 +144,21 @@ const ques = e =>{
     })
   }, 500)
 
+  const findIdx = initQues.value.findIndex(i => i.ques.toLowerCase().indexOf(e.toLowerCase()) !== -1)  
+
+  if(findIdx !== -1){
+    setTimeout(() => {
+      const content = initQues.value[findIdx].ans
+      let lastDom = arr[arr.length-1]
+      lastDom[lastDom.length -1].loading = false
+      lastDom[lastDom.length -1].content = content  
+      lastDom[lastDom.length -1].response = content
+      localStorage.set("chats", arr)
+    }, 1500);
+    
+    return 
+  }
+
   apiReq(str).then(res=>{
     if(res.status === 200){
       const resTxt = res.data.choices[0].text
@@ -156,8 +171,10 @@ const ques = e =>{
           .replaceAll('\n', '<br/>')
           .replace('<br/><br/>', '\n\n')
       lastDom[lastDom.length -1].response = resTxt
+      localStorage.set("chats", arr)
     }
   })
+
 }
 
 const formatTime = t =>{
