@@ -37,7 +37,7 @@
 
     <div class="send-wrapper">
       <div class="send-inner">
-        <input class="msg-input" type="text" v-model="msg" placeholder="Send message..." @keyup.enter="handleSent">
+        <input ref="inputRef" class="msg-input" type="text" v-model="msg" placeholder="Send message..." @keyup.enter="handleSent">
         <img class="call-icon" src="./assets/img/call.svg" alt="" @click="showDiag = true">
       </div>
     </div>
@@ -51,6 +51,8 @@ import { localStorage, formatTimer } from "./assets/utils/index";
 import { apiReq } from './assets/utils/openai'
 import Diag from './components/Diag.vue'
 const msg = ref('')
+const inputRef = ref(null)
+
 const showDiag = ref(false)
 const onOff = ref(false)
 let chats = localStorage.get("chats") || [
@@ -68,6 +70,8 @@ const arr = reactive(chats)
 const handleSent = e=>{
   const val = e.target.value;
   msg.value = '';
+
+  inputRef.value.blur()
 
   if(!onOff.value){
     arr.push([{
