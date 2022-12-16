@@ -54,9 +54,9 @@ import Diag from './components/Diag.vue'
 const msg = ref('')
 const inputRef = ref(null)
 const scroll = ref(null)
-
+let bs;
  setTimeout(() => {
-   const bs = new BScroll(scroll.value, {
+   bs = new BScroll(scroll.value, {
     probeType: 3,
     click: true
   })
@@ -78,6 +78,7 @@ let chats = localStorage.get("chats") || [
 const toBot = ()=>{
   setTimeout(() => {    
     // window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
+    // bs.scrollTo(5000, 0, 300, undefined)
   }, 100);
 }
 const arr = reactive(chats)
