@@ -7,7 +7,6 @@
         <template v-for="(list, index) in arr" :key="index">
           <div class="time-div" v-if="index">
             {{formatTime(list[0].stamp)}}
-            
           </div>
           <div class="msg-item" :class="{'user-bg':item.type === 'user'}" v-for="(item, idx) in list" :key="idx">
             <template v-if="item.type === 'bot'">
@@ -49,9 +48,15 @@
 import { ref, onMounted, reactive } from 'vue';
 import { localStorage, formatTimer } from "./assets/utils/index";
 import { apiReq } from './assets/utils/openai'
+import BScroll from '@better-scroll/core'
+
+
 import Diag from './components/Diag.vue'
 const msg = ref('')
 const inputRef = ref(null)
+
+
+
 
 const showDiag = ref(false)
 const onOff = ref(false)
@@ -64,6 +69,12 @@ let chats = localStorage.get("chats") || [
   }],  
 ];
 
+
+const toBot = ()=>{
+  setTimeout(() => {    
+    window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
+  }, 100);
+}
 const arr = reactive(chats)
 
 // input fields
@@ -71,7 +82,7 @@ const handleSent = e=>{
   const val = e.target.value;
   msg.value = '';
 
-  inputRef.value.blur()
+  inputRef.value && inputRef.value.blur()
 
   if(!onOff.value){
     arr.push([{
@@ -91,6 +102,8 @@ const handleSent = e=>{
     })
   }
 
+  toBot()
+
   const cs = arr[arr.length-1]
   const str = cs.reduce((prev, cur)=> prev + cur.response,'')
   setTimeout(()=>{
@@ -100,6 +113,9 @@ const handleSent = e=>{
       content:'',
       response:''
     })
+
+    toBot()
+
   }, 500)
   
 
@@ -118,7 +134,7 @@ const handleSent = e=>{
           .replace('<br/><br/>', '\n\n')
       lastDom[lastDom.length -1].response = resTxt
       localStorage.set("chats", arr)
-
+      toBot()
     }
   })
 }
@@ -135,6 +151,7 @@ const ques = e =>{
     stamp:new Date().getTime()
   }])
 
+  toBot()
 
   const cs = arr[arr.length-1]
   const str = cs.reduce((prev, cur) => prev + cur.response, '')
@@ -146,6 +163,9 @@ const ques = e =>{
       content:'',
       response:''
     })
+
+    toBot()
+
   }, 500)
 
   const findIdx = initQues.value.findIndex(i => i.ques.toLowerCase().indexOf(e.toLowerCase()) !== -1)  
@@ -158,6 +178,9 @@ const ques = e =>{
       lastDom[lastDom.length -1].content = content  
       lastDom[lastDom.length -1].response = content
       localStorage.set("chats", arr)
+
+      toBot()
+
     }, 1500);
     
     return 
@@ -176,6 +199,9 @@ const ques = e =>{
           .replace('<br/><br/>', '\n\n')
       lastDom[lastDom.length -1].response = resTxt
       localStorage.set("chats", arr)
+
+      toBot()
+      
     }
   })
 
