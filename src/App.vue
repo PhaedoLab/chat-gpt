@@ -1,25 +1,27 @@
 
 <template>
   <div class="page-wrapper">
-    <div class="msg-wrapper" ref="scroll">
-      
+    <div class="msg-wrapper">
       <ul class="msg-list">
-        <template v-for="(list, index) in arr" :key="index">
-          <div class="time-div" v-if="index">
-            {{formatTime(list[0].stamp)}}
-          </div>
-          <div class="msg-item" :class="{'user-bg':item.type === 'user'}" v-for="(item, idx) in list" :key="idx">
+          <div class="msg-item" :class="{'user-bg':item.type === 'user'}" v-for="(item, idx) in arr" :key="idx">
             <template v-if="item.type === 'bot'">
               <div class="msg-title">
                 <img class="bot" src="./assets/img/bot.svg" alt="">
                 <span class="chat-txt1">Chatwallet</span>
                 <span class="chat-txt2">OpenAI</span>
               </div>
-              <div v-if="!item.loading" class="msg-content" v-html="item.content"></div>
-              <div v-else class="snippet">
+              <div v-if="!item.loading && item.isSuccess" class="msg-content" v-html="item.content"></div>
+              <div v-else-if="item.loading" class="snippet">
                 <div class="stage">
                   <div class="dot-flashing"></div>
                 </div>
+              </div>
+              <div class="error-b" v-else>
+                <svg class="error-icon" width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M8.00008 1.83341C11.682 1.83341 14.6667 4.81818 14.6667 8.50008C14.6667 12.182 11.682 15.1667 8.00008 15.1667C4.31818 15.1667 1.33341 12.182 1.33341 8.50008C1.33341 4.81818 4.31818 1.83341 8.00008 1.83341ZM7.50008 9.83341L7.50008 5.16675L8.50008 5.16675L8.50008 9.83341L7.50008 9.83341ZM8.00008 10.5001C7.63189 10.5001 7.33341 10.7986 7.33341 11.1667C7.33341 11.5349 7.63189 11.8334 8.00008 11.8334C8.36827 11.8334 8.66675 11.5349 8.66675 11.1667C8.66675 10.7986 8.36827 10.5001 8.00008 10.5001Z" fill="white"/>
+                </svg>
+                <div class="error-txt">hmm...something went wrong. Please <span @click="tryAgain" class="try-txt">Try again.</span></div>
+
               </div>
             </template>
             <template v-else>
@@ -29,8 +31,7 @@
               </div>
               <div class="user-content">{{item.content}}</div>
             </template>
-          </div>          
-      </template>
+          </div>
       </ul>
     </div>
 
@@ -45,40 +46,29 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, reactive } from 'vue';
 import { localStorage, formatTimer } from "./assets/utils/index";
 import { apiReq } from './assets/utils/openai'
-import BScroll from '@better-scroll/core'
 import Diag from './components/Diag.vue'
 
 const msg = ref('')
 const inputRef = ref(null)
-const scroll = ref(null)
-let bs;
- setTimeout(() => {
-  //  bs = new BScroll(scroll.value, {
-  //   probeType: 3,
-  //   click: true
-  // })
- }, 500);
- 
 
 const showDiag = ref(false)
-const onOff = ref(false)
-let chats = localStorage.get("chats") || [
-  [{
-    type:'bot',
-    loading:false,
-    content:'Hello, my friend. Welcome to the Web3 world. I am the Chatwallet bot. You can ask me anything about web3. And I will be your sincere companion during this exploration.',
-    response:''
-  }],  
-];
+
+let chats = localStorage.get("chats2") || [{
+  type:'bot',
+  loading:false,
+  isSuccess:true,
+  content:'Hello, my friend. Welcome to the Web3 world. I am the Chatwallet bot. You can ask me anything about web3. And I will be your sincere companion during this exploration.',
+  response:''
+}]
 
 
 const toBot = ()=>{
-  setTimeout(() => {    
-    scroll.value.scrollTo({ left: 0, top: scroll.value.scrollHeight, behavior: "smooth" });
-  }, 100);
+  // setTimeout(() => {    
+  //   scroll.value.scrollTo({ left: 0, top: scroll.value.scrollHeight, behavior: "smooth" });
+  // }, 100);
 }
 const arr = reactive(chats)
 
@@ -88,31 +78,21 @@ const handleSent = e=>{
   msg.value = '';
 
   inputRef.value && inputRef.value.blur()
-
-  if(!onOff.value){
-    arr.push([{
+    arr.push({
       type:'user',
       loading:false,
       content:val,
       response:val,
       stamp:new Date().getTime()
-    }])
-    onOff.value = true
-  }else{
-    arr[arr.length-1].push({
-      type:'user',
-      loading:false,
-      content:val,
-      response:val
     })
-  }
 
   toBot()
 
   const cs = arr[arr.length-1]
-  const str = cs.reduce((prev, cur)=> prev + cur.response,'')
+  
   setTimeout(()=>{
-    arr[arr.length-1].push({
+
+    arr.push({
       type:'bot',
       loading:true,
       content:'',
@@ -124,23 +104,34 @@ const handleSent = e=>{
   }, 500)
   
 
-  localStorage.set("chats", arr)
+  localStorage.set("chats2", arr)
 
-  apiReq(str).then(res=>{
+  apiReq(cs.response).then(res=>{
     if(res.status === 200){
       const resTxt = res.data.choices[0].text
+      if(!resTxt.length){
+        lastDom.loading = false
+        lastDom.isSuccess = false  
+        return
+      }
       let lastDom = arr[arr.length-1]
-      lastDom[lastDom.length -1].loading = false
-      lastDom[lastDom.length -1].content = resTxt      
+      lastDom.loading = false
+      lastDom.isSuccess = true
+      lastDom.content = resTxt      
           .replace('？','')
           .replace('。','')
           .replace('.','')
           .replaceAll('\n', '<br/>')
           .replace('<br/><br/>', '\n\n')
-      lastDom[lastDom.length -1].response = resTxt
-      localStorage.set("chats", arr)
+      lastDom.response = resTxt
+      localStorage.set("chats2", arr)
       toBot()
     }
+  }).catch(err=>{
+    let lastDom = arr[arr.length-1]
+    lastDom.loading = false
+    lastDom.isSuccess = false  
+    return 
   })
 }
 
@@ -148,21 +139,20 @@ const handleSent = e=>{
 // click questions list
 const ques = e =>{
   showDiag.value = false
-  arr.push([{
+  arr.push({
     type:'user',
     loading:false,
     content:e,
     response:e,
     stamp:new Date().getTime()
-  }])
+  })
 
   toBot()
 
   const cs = arr[arr.length-1]
-  const str = cs.reduce((prev, cur) => prev + cur.response, '')
 
   setTimeout(()=>{
-     arr[arr.length-1].push({
+     arr.push({
       type:'bot',
       loading:true,
       content:'',
@@ -179,10 +169,11 @@ const ques = e =>{
     setTimeout(() => {
       const content = initQues.value[findIdx].ans
       let lastDom = arr[arr.length-1]
-      lastDom[lastDom.length -1].loading = false
-      lastDom[lastDom.length -1].content = content  
-      lastDom[lastDom.length -1].response = content
-      localStorage.set("chats", arr)
+      lastDom.loading = false
+      lastDom.isSuccess = true
+      lastDom.content = content  
+      lastDom.response = content
+      localStorage.set("chats2", arr)
 
       toBot()
 
@@ -191,26 +182,41 @@ const ques = e =>{
     return 
   }
 
-  apiReq(str).then(res=>{
+  apiReq(cs.response).then(res=>{
     if(res.status === 200){
       const resTxt = res.data.choices[0].text
       let lastDom = arr[arr.length-1]
-      lastDom[lastDom.length -1].loading = false
-      lastDom[lastDom.length -1].content = resTxt      
+      if(!resTxt.length){
+        lastDom.loading = false
+        lastDom.isSuccess = false  
+        return
+      }
+      lastDom.loading = false
+      lastDom.content = resTxt      
           .replace('？','')
           .replace('。','')
           .replace('.','')
           .replaceAll('\n', '<br/>')
           .replace('<br/><br/>', '\n\n')
-      lastDom[lastDom.length -1].response = resTxt
-      localStorage.set("chats", arr)
+      lastDom.response = resTxt
+      localStorage.set("chats2", arr)
 
       toBot()
 
     }
+  }).catch(err=>{
+    let lastDom = arr[arr.length-1]
+    lastDom.loading = false
+    lastDom.isSuccess = false  
+    return 
   })
 
 }
+
+const tryAgain = ()=>{
+  inputRef.value && inputRef.value.focus()
+}
+
 
 const formatTime = t =>{
   const isToday = new Date().toDateString() === new Date(t).toDateString()
@@ -259,21 +265,26 @@ getQues()
 
 .page-wrapper{
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: radial-gradient(94.87% 50% at 50% 50%, rgba(9, 106, 105, 0.5) 0%, #096A69 86.87%), #B1FFF1;
 }
-.msg-wrapper{  
-  height: calc(100vh - 70px);
-  padding-bottom: 60px;
-  position :relative;
-  overflow :auto;
+.msg-wrapper{
+  height:calc(100vh - 70px);
+  
+  overflow:auto;
+  
+}
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent */
 }
 .msg-list{
-  padding: 16px;  
+  padding: 14px;  
   box-sizing: border-box;
   .msg-item{
     margin-bottom: 16px;
-    padding: 16px;
+    padding: 15px;
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.02)), rgba(255, 255, 255, 0.16);
     border: 0.5px solid rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(4px);
@@ -317,7 +328,7 @@ getQues()
   .send-inner{
     display: flex;
     justify-content: space-between;
-    padding: 16px 20px;
+    padding: 16px 20px 30px 20px;
     .msg-input{
       flex: 1;
       margin-right: 16px;
@@ -405,7 +416,22 @@ getQues()
   color: rgba(255, 255, 255, 0.3);
 }
 
-
+.error-b{
+  display: flex;
+  align-items: flex-start;
+}
+.error-icon{
+  margin-right: 6px;  
+}
+.error-txt{
+  font-size: 14px;
+  line-height: 17px;
+  word-break: break-all;
+  font-weight: 500;
+}
+.try-txt{
+  color: #68FFFF;
+}
 </style>
 
 

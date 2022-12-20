@@ -64,11 +64,10 @@ const handleClick = (item)=>{
     overflow: auto;  
 }
 .msg-item{
-    height: 53px;
-    line-height: 53px;
+    line-height: 22px;
+    padding: 16px 0;
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.02)), rgba(255, 255, 255, 0.16);
     border: 0.5px solid rgba(255, 255, 255, 0.4);
-    
     border-radius: 16px;
     font-size: 17px;
     color: #fff;
