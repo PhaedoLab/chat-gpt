@@ -106,7 +106,6 @@ const handleSent = e=>{
 
   localStorage.set("chats2", arr)
 
-
   const inputArr = val.toLowerCase().replace(/[|&;$%@"<>()+,?？]/g, '').split(' ');
   const findItem = initQues.value.findIndex(item=>{
     const ansArr = item.ques.toLowerCase().replace(/[|&;$%@"<>()+,?？]/g, '').split(' ');    
@@ -115,22 +114,24 @@ const handleSent = e=>{
   
   if(findItem !== -1){
     setTimeout(() => {
+
       const content = initQues.value[findItem].ans
       let lastDom = arr[arr.length-1]
       lastDom.loading = false
       lastDom.isSuccess = true
-      lastDom.content = content  
+      lastDom.content = content.replace('？','')
+          .replace('。','')
+          .replace('.','')
+          .replaceAll('\n', '<br/>')
+          .replace('<br/><br/>', '\n\n')
       lastDom.response = content
       localStorage.set("chats2", arr)
       toBot()
 
     }, 1500);
-    
     return 
   }
 
-
-  
   apiReq(cs.response).then(res=>{
     if(res.status === 200){
       const resTxt = res.data.choices[0].text
@@ -196,7 +197,11 @@ const ques = e =>{
       let lastDom = arr[arr.length-1]
       lastDom.loading = false
       lastDom.isSuccess = true
-      lastDom.content = content  
+      lastDom.content = content.replace('？','')
+          .replace('。','')
+          .replace('.','')
+          .replaceAll('\n', '<br/>')
+          .replace('<br/><br/>', '\n\n')
       lastDom.response = content
       localStorage.set("chats2", arr)
 
