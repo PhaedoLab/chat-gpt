@@ -279,6 +279,7 @@ getQues()
 </script>
 
 <style scoped lang="scss">
+
 .time-div{
   display: flex;
   justify-content: center;
@@ -328,7 +329,7 @@ getQues()
       background: linear-gradient(0deg, rgba(33, 150, 83, 0.32), rgba(33, 150, 83, 0.32)), rgba(255, 255, 255, 0.2);
     }
     .msg-content{
-      word-break: break-all;
+      word-break: break-word;
     }
     .msg-title{
       display: flex;
